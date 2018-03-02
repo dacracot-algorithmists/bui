@@ -25,8 +25,8 @@ COMMENT ON TABLE type IS 'Types of rooms.';
 COMMENT ON COLUMN type.key IS 'Artificial primary key.';
 COMMENT ON COLUMN type.name IS 'Name of the room type.';
 /*------------------------------------------------------------------------*/
-CREATE TABLE room(
-	key NUMBER(11) DEFAULT key.NEXTVAL NOT NULL CONSTRAINT roomPkey PRIMARY KEY USING INDEX,
+CREATE TABLE rm(
+	key NUMBER(11) DEFAULT key.NEXTVAL NOT NULL CONSTRAINT rmPkey PRIMARY KEY USING INDEX,
 	name VARCHAR2(255) NOT NULL,
 	length NUMBER(6,2),
 	width NUMBER(6,2),
@@ -35,17 +35,17 @@ CREATE TABLE room(
 	typeKey NUMBER(11) NOT NULL 
 );
 /*------------------------------------*/
-COMMENT ON TABLE room IS 'Rooms within buildings with specific types.';
-COMMENT ON COLUMN room.key IS 'Artificial primary key.';
-COMMENT ON COLUMN room.name IS 'Name of the room.';
-COMMENT ON COLUMN room.length IS 'Dimension of the room.';
-COMMENT ON COLUMN room.width IS 'Dimension of the room.';
-COMMENT ON COLUMN room.height IS 'Dimension of the room.';
-COMMENT ON COLUMN room.bldgKey IS 'Foreign key referencing the building to which this room belongs.';
-COMMENT ON COLUMN room.typeKey IS 'Foreign key referencing the type of room. Defaults to undefined.';
+COMMENT ON TABLE rm IS 'Rooms within buildings with specific types.';
+COMMENT ON COLUMN rm.key IS 'Artificial primary key.';
+COMMENT ON COLUMN rm.name IS 'Name of the room.';
+COMMENT ON COLUMN rm.length IS 'Dimension of the room.';
+COMMENT ON COLUMN rm.width IS 'Dimension of the room.';
+COMMENT ON COLUMN rm.height IS 'Dimension of the room.';
+COMMENT ON COLUMN rm.bldgKey IS 'Foreign key referencing the building to which this room belongs.';
+COMMENT ON COLUMN rm.typeKey IS 'Foreign key referencing the type of room. Defaults to undefined.';
 /*------------------------------------*/
 CREATE TRIGGER typeIsUndefined
-	BEFORE INSERT ON room
+	BEFORE INSERT ON rm
 	FOR EACH ROW
 	/*-----------------------*/
 	BEGIN
@@ -66,34 +66,34 @@ CREATE TRIGGER typeIsUndefined
 SHOW ERRORS
 /*------------------------------------*/
 ALTER TABLE
-		room
+		rm
 	ADD CONSTRAINT
-		roomBldgFKey
+		rmBldgFKey
 	FOREIGN KEY
 		(bldgKey)
 	REFERENCES
 		bldg(key)
 ;
 /*------------------------------------*/
-CREATE INDEX roomBldgFndx ON
-	room
+CREATE INDEX rmBldgFndx ON
+	rm
 		(
 		bldgKey
 		)
 ;
 /*------------------------------------*/
 ALTER TABLE
-		room
+		rm
 	ADD CONSTRAINT
-		roomTypeFKey
+		rmTypeFKey
 	FOREIGN KEY
 		(typeKey)
 	REFERENCES
 		type(key)
 ;
 /*------------------------------------*/
-CREATE INDEX roomTypeFndx ON
-	room
+CREATE INDEX rmTypeFndx ON
+	rm
 		(
 		typeKey
 		)
