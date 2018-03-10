@@ -1,0 +1,141 @@
+<!-- ======================================================================= -->
+<project name="bui" default="main" basedir="./">
+	<!-- =================================================================== -->
+	<!-- get enviroment from OS -->
+	<!-- =================================================================== -->
+	<property environment="env"/> 
+	<!-- =================================================================== -->
+	<!-- set misc properties -->
+	<!-- =================================================================== -->
+	<buildnumber file="build.number"/>
+	<property name="name" value="bui"/>
+	<property name="version" value="0.1"/>
+	<property name="JDK" value="1.8"/>
+	<property name="db.login.bui" value="bui/p8ssw0rd@jdbc:oracle:thin:@craig-vm3.llnl.gov:1521:DCCDB"/>
+	<!-- =================================================================== -->
+	<!-- clean everything -->
+	<!-- =================================================================== -->
+	<target name="clean" description="remove clutter">
+		<echo message="clean --------------------------------------"/>
+		<delete dir="tmp"/>
+		<delete dir="deploy"/>
+		<delete>
+			<fileset dir="./" includes="src/sql/*.sql.err"/>
+			<fileset dir="./" includes="*.out"/>
+			<fileset dir="./" includes="*.err"/>
+		</delete>
+		<echo message="clean --------------------------------------"/>
+	</target>
+	<!-- =================================================================== -->
+	<!-- load plsql bui -->
+	<!-- =================================================================== -->
+	<target name="compile.plsql.bui" description="compile plsql for bui">
+		<echo message="compile.plsql.bui --------------------"/>
+		<mkdir dir="tmp/log"/>
+		<exec dir="src/sql" executable="sql" failonerror="true" output="src/sql/bui.all.sql.err">
+			<arg value="${db.login.bui}"/>
+			<arg value="@bui.all.sql"/>
+		</exec>
+		<echo message="looking for plsql errors -------------------"/>
+		<exec dir="src/sql" executable="grep" failonerror="false" resultproperty="found">
+			<arg value="LINE/COL ERROR"/>
+			<arg value="bui.all.sql.err"/>
+		</exec>
+		<fail message="plsql compile errors">
+			<condition>
+				<equals arg1="${found}" arg2="0"/>
+			</condition>
+		</fail>
+		<echo message="looking for line item errors ---------------"/>
+		<exec dir="src/sql" executable="grep" failonerror="false" resultproperty="found">
+			<arg value="ERROR at"/>
+			<arg value="bui.all.sql.err"/>
+		</exec>
+		<fail message="sql compile errors">
+			<condition>
+				<equals arg1="${found}" arg2="0"/>
+			</condition>
+		</fail>
+		<echo message="compile.plsql.bui --------------------"/>
+	</target>
+	<!-- =================================================================== -->
+	<!-- load plsql -->
+	<!-- =================================================================== -->
+	<target name="compile.plsql" depends="compile.plsql.bui" description="compile plsql">
+		<echo message="compile.plsql ------------------------"/>
+	</target>
+	<!-- =================================================================== -->
+	<!-- compile java -->
+	<!-- =================================================================== -->
+	<target name="compile.java" description="compile java">
+		<echo message="compile.java ---------------------------"/>
+		<path id="classpath">
+			<pathelement location="lib/saxon9.jar"/>
+			<pathelement location="lib/json.jar"/>
+			<pathelement location="lib/servlet-api.jar"/>
+			<pathelement location="lib/ojdbc8.jar"/>
+			<pathelement location="lib/commons-codec-1.10.jar"/>
+		</path>
+		<mkdir dir="tmp/classes"/>
+		<javac source="${JDK}" target="${JDK}" srcdir="src" destdir="tmp/classes" debug="on" deprecation="on" optimize="on" includeAntRuntime="false">
+			<classpath refid="classpath"/>
+			<compilerarg value="-Xlint"/>
+		</javac>
+		<manifest file="tmp/MANIFEST.MF">
+			<attribute name="Built-By" value="${env.USER}"/>
+			<attribute name="Implementation-Version" value="${version} build ${build.number}"/>
+		</manifest>
+		<jar jarfile="tmp/bui.jar" basedir="tmp/classes" manifest="tmp/MANIFEST.MF"/>
+		<echo message="compile.java ---------------------------"/>
+	</target>
+	<!-- =================================================================== -->
+	<!-- load war -->
+	<!-- =================================================================== -->
+	<target name="load.war" depends="clean, compile.java" description="move everything to the web archive">
+		<echo message="load.war -----------------------------------"/>
+		<mkdir dir="tmp/bui"/>
+		<copy todir="tmp/bui/META-INF">
+			<fileset dir="src">
+				<include name="context.xml"/>
+			</fileset>
+		</copy>
+		<filter token="VERSION" value="${version} build ${build.number}"/>
+		<tstamp>
+			<format property="when" pattern="yyyy-MM-dd HH:mm:ss"/>
+		</tstamp>
+		<filter token="WHEN" value="${when}"/>
+		<copy todir=".">
+			<fileset dir="tmp">
+				<include name="bui.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="tmp/bui/WEB-INF/lib">
+			<fileset dir="lib">
+				<include name="json.jar"/>
+				<include name="ojdbc8.jar"/>
+				<include name="commons-logging-1.2.jar"/>
+				<include name="commons-codec-1.10.jar"/>
+			</fileset>
+			<fileset dir="tmp">
+				<include name="bui.jar"/>
+			</fileset>
+		</copy>
+		<copy todir="tmp/bui/WEB-INF/classes">
+			<fileset dir="src">
+				<include name="logging.properties"/>
+			</fileset>
+		</copy>
+		<war warfile="bui.war" webxml="src/web.xml" manifest="tmp/MANIFEST.MF">
+			<fileset dir="tmp/bui"/>
+		</war>
+		<echo message="load.war -----------------------------------"/>
+	</target>
+	<!-- =================================================================== -->
+	<!-- default -->
+	<!-- =================================================================== -->
+<!--	<target name="main" depends="clean, compile.plsql, load.war" description="default"> -->
+	<target name="main" depends="clean, compile.plsql" description="default">
+	</target>
+	<!-- =================================================================== -->
+</project>
+<!-- ======================================================================= -->
