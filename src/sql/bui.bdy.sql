@@ -6,6 +6,10 @@ set define off
 CREATE OR REPLACE PACKAGE BODY creater
 	AS
 	/*========================================================================*/
+		v_timestamp VARCHAR(16);
+		v_error VARCHAR2(1024);
+		/*=======================*/
+	/*========================================================================*/
 		FUNCTION building
 			(
 			in_payload IN VARCHAR2
@@ -13,9 +17,6 @@ CREATE OR REPLACE PACKAGE BODY creater
 		RETURN SYS_REFCURSOR
 		AS
 		/*-----------------------*/
-		v_timestamp VARCHAR(16);
-		v_error VARCHAR2(1024);
-		/*=======================*/
 		BEGIN
 		/*=======================*/
 			tox.tox.begin_spool;
@@ -44,9 +45,6 @@ CREATE OR REPLACE PACKAGE BODY creater
 		RETURN SYS_REFCURSOR
 		AS
 		/*-----------------------*/
-		v_timestamp VARCHAR(16);
-		v_error VARCHAR2(1024);
-		/*=======================*/
 		BEGIN
 		/*=======================*/
 			tox.tox.begin_spool;
@@ -79,20 +77,155 @@ SHOW ERRORS PACKAGE BODY creater;
 CREATE OR REPLACE PACKAGE BODY getter
 	AS
 	/*========================================================================*/
+		v_timestamp VARCHAR(16);
+		v_error VARCHAR2(1024);
+		/*=======================*/
+		by_bldg_key bldg.key%TYPE;
+		v_bldg_key bldg.key%TYPE;
+		v_bldg_name bldg.name%TYPE;
+		v_bldg_addr bldg.addr%TYPE;
+		/*=======================*/
+		CURSOR c_bldg_all IS
+			SELECT
+				key,
+				name,
+				addr
+			FROM
+				bldg;
+		/*=======================*/
+		CURSOR c_bldg_by_key IS
+			SELECT
+				key,
+				name,
+				addr
+			FROM
+				bldg
+			WHERE
+				key = by_bldg_key;
+		/*=======================*/
+		v_type_key type.key%TYPE;
+		v_type_name type.name%TYPE;
+		/*=======================*/
+		CURSOR c_type_all IS
+			SELECT
+				key,
+				name
+			FROM
+				type;
+		/*=======================*/
+		by_rm_key rm.key%TYPE;
+		v_rm_key rm.key%TYPE;
+		v_rm_name rm.name%TYPE;
+		v_rm_length rm.length%TYPE;
+		v_rm_width rm.width%TYPE;
+		v_rm_height rm.height%TYPE;
+		v_rm_bldgKey rm.bldgKey%TYPE;
+		by_rm_bldgKey rm.bldgKey%TYPE;
+		v_rm_typeKey rm.typeKey%TYPE;
+		by_rm_typeKey rm.typeKey%TYPE;
+		/*=======================*/
+		CURSOR c_rm_by_key IS
+			SELECT
+				key,
+				name,
+				length,
+				width,
+				height,
+				bldgKey,
+				typeKey
+			FROM
+				rm
+			WHERE
+				key = by_rm_key;
+		/*=======================*/
+		CURSOR c_rm_by_bldgKey IS
+			SELECT
+				key,
+				name,
+				length,
+				width,
+				height,
+				bldgKey,
+				typeKey
+			FROM
+				rm
+			WHERE
+				bldgKey = by_rm_bldgKey;
+		/*=======================*/
+		CURSOR c_rm_by_typeKey IS
+			SELECT
+				key,
+				name,
+				length,
+				width,
+				height,
+				bldgKey,
+				typeKey
+			FROM
+				rm
+			WHERE
+				typeKey = by_rm_typeKey;
+		/*=======================*/
+		CURSOR c_rm_by_typeKey_and_bldgKey IS
+			SELECT
+				key,
+				name,
+				length,
+				width,
+				height,
+				bldgKey,
+				typeKey
+			FROM
+				rm
+			WHERE
+				bldgKey = by_rm_bldgKey
+					AND
+				typeKey = by_rm_typeKey;
+	/*========================================================================*/
 		FUNCTION everything
 		RETURN SYS_REFCURSOR
 		AS
 		/*-----------------------*/
-		v_timestamp VARCHAR(16);
-		v_error VARCHAR2(1024);
-		/*=======================*/
 		BEGIN
 		/*=======================*/
 			tox.tox.begin_spool;
 			v_timestamp:= tox.tox.timestamp;
 		/*-----------------------*/
 			tox.tox.into_spool('<bui timestamp="'||v_timestamp||'" feedback="ok">');
-			tox.tox.into_spool('getter.everything');
+		/*-----------------------*/
+			tox.tox.into_spool('<types>');
+			OPEN c_type_all;
+			LOOP
+				FETCH c_type_all INTO v_type_key, v_type_name;
+				EXIT WHEN (c_type_all%NOTFOUND);
+				tox.tox.into_spool('<type key="'||v_type_key||'" name="'||v_type_name||'"/>');
+			END LOOP;
+			CLOSE c_type_all;
+			tox.tox.into_spool('</types>');
+		/*-----------------------*/
+			tox.tox.into_spool('<bldgs>');
+			OPEN c_bldg_all;
+			LOOP
+				FETCH c_bldg_all INTO v_bldg_key, v_bldg_name, v_bldg_addr;
+				EXIT WHEN (c_bldg_all%NOTFOUND);
+				tox.tox.into_spool('<bldg key="'||v_bldg_key||'" name="'||v_bldg_name||'" addr="'||v_bldg_addr||'">');
+			/*-----------------------*/
+				tox.tox.into_spool('<rms>');
+				by_rm_bldgKey:= v_bldg_key;
+				OPEN c_rm_by_bldgKey;
+				LOOP
+					FETCH c_rm_by_bldgKey INTO v_rm_key, v_rm_name, v_rm_length, v_rm_width, v_rm_height, v_rm_bldgKey, v_rm_typeKey;
+					EXIT WHEN (c_rm_by_bldgKey%NOTFOUND);
+					tox.tox.into_spool('<rm key="'||v_rm_key||'" name="'||v_rm_name||'" length="'||v_rm_length||'" width="'||v_rm_width||'" height="'||v_rm_height||'" bldgKey="'||v_rm_bldgKey||'" typeKey="'||v_rm_typeKey||'"/>');
+				END LOOP;
+				CLOSE c_rm_by_bldgKey;
+				tox.tox.into_spool('</rms>');
+			/*-----------------------*/
+				tox.tox.into_spool('</bldg>');
+			END LOOP;
+			CLOSE c_bldg_all;
+			tox.tox.into_spool('</bldgs>');
+		/*-----------------------*/
 			tox.tox.into_spool('</bui>');
 		/*-----------------------*/
 			COMMIT;
@@ -110,9 +243,6 @@ CREATE OR REPLACE PACKAGE BODY getter
 		RETURN SYS_REFCURSOR
 		AS
 		/*-----------------------*/
-		v_timestamp VARCHAR(16);
-		v_error VARCHAR2(1024);
-		/*=======================*/
 		BEGIN
 		/*=======================*/
 			tox.tox.begin_spool;
@@ -140,9 +270,6 @@ CREATE OR REPLACE PACKAGE BODY getter
 		RETURN SYS_REFCURSOR
 		AS
 		/*-----------------------*/
-		v_timestamp VARCHAR(16);
-		v_error VARCHAR2(1024);
-		/*=======================*/
 		BEGIN
 		/*=======================*/
 			tox.tox.begin_spool;
@@ -170,9 +297,6 @@ CREATE OR REPLACE PACKAGE BODY getter
 		RETURN SYS_REFCURSOR
 		AS
 		/*-----------------------*/
-		v_timestamp VARCHAR(16);
-		v_error VARCHAR2(1024);
-		/*=======================*/
 		BEGIN
 		/*=======================*/
 			tox.tox.begin_spool;
@@ -200,9 +324,6 @@ CREATE OR REPLACE PACKAGE BODY getter
 		RETURN SYS_REFCURSOR
 		AS
 		/*-----------------------*/
-		v_timestamp VARCHAR(16);
-		v_error VARCHAR2(1024);
-		/*=======================*/
 		BEGIN
 		/*=======================*/
 			tox.tox.begin_spool;
@@ -235,6 +356,10 @@ SHOW ERRORS PACKAGE BODY getter;
 CREATE OR REPLACE PACKAGE BODY updater
 	AS
 	/*========================================================================*/
+		v_timestamp VARCHAR(16);
+		v_error VARCHAR2(1024);
+		/*=======================*/
+	/*========================================================================*/
 		FUNCTION building
 			(
 			in_key IN bldg.key%TYPE,
@@ -243,9 +368,6 @@ CREATE OR REPLACE PACKAGE BODY updater
 		RETURN SYS_REFCURSOR
 		AS
 		/*-----------------------*/
-		v_timestamp VARCHAR(16);
-		v_error VARCHAR2(1024);
-		/*=======================*/
 		BEGIN
 		/*=======================*/
 			tox.tox.begin_spool;
@@ -274,9 +396,6 @@ CREATE OR REPLACE PACKAGE BODY updater
 		RETURN SYS_REFCURSOR
 		AS
 		/*-----------------------*/
-		v_timestamp VARCHAR(16);
-		v_error VARCHAR2(1024);
-		/*=======================*/
 		BEGIN
 		/*=======================*/
 			tox.tox.begin_spool;
@@ -309,6 +428,10 @@ SHOW ERRORS PACKAGE BODY updater;
 CREATE OR REPLACE PACKAGE BODY deleter
 	AS
 	/*========================================================================*/
+		v_timestamp VARCHAR(16);
+		v_error VARCHAR2(1024);
+		/*=======================*/
+	/*========================================================================*/
 		FUNCTION building
 			(
 			in_key IN bldg.key%TYPE
@@ -316,9 +439,6 @@ CREATE OR REPLACE PACKAGE BODY deleter
 		RETURN SYS_REFCURSOR
 		AS
 		/*-----------------------*/
-		v_timestamp VARCHAR(16);
-		v_error VARCHAR2(1024);
-		/*=======================*/
 		BEGIN
 		/*=======================*/
 			tox.tox.begin_spool;
@@ -346,9 +466,6 @@ CREATE OR REPLACE PACKAGE BODY deleter
 		RETURN SYS_REFCURSOR
 		AS
 		/*-----------------------*/
-		v_timestamp VARCHAR(16);
-		v_error VARCHAR2(1024);
-		/*=======================*/
 		BEGIN
 		/*=======================*/
 			tox.tox.begin_spool;

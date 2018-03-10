@@ -19,7 +19,7 @@ say "go"
 case "$1" in
 	'-?'|'-help'|'--help')
 		echo "usage: go"
-		echo "       compile and deploy tox"
+		echo "       compile and deploy bui"
 		echo -----------------------------
 		;;
 	*)
@@ -27,15 +27,15 @@ case "$1" in
 		if [ $? = 0 ] ; then
 			echo -----------------------------
 			ant clean
+# 			echo -----------------------------
+# 			"$TOMCAT_HOME/bin/shutdown.sh"
+# 			rm -fr "$WEBAPPS/bui*"
+# 			echo -----------------------------
+# 			cp -v bui.war "$WEBAPPS"
+# 			"$TOMCAT_HOME/bin/startup.sh"
+# 			sleep 2
 			echo -----------------------------
-			"$TOMCAT_HOME/bin/shutdown.sh"
-			rm -fr "$WEBAPPS/tox*"
-			echo -----------------------------
-			cp -v tox.war "$WEBAPPS"
-			"$TOMCAT_HOME/bin/startup.sh"
-			sleep 2
-			echo -----------------------------
-			unitTest
+			test/toxBuiTests.sh
 			echo -----------------------------
 			say "success"
 		else
