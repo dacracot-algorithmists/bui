@@ -46,12 +46,6 @@ CREATE OR REPLACE PACKAGE getter AS
 			)
 			RETURN SYS_REFCURSOR;
 	/*=======================*/
-		FUNCTION room
-			(
-			in_key IN rm.key%TYPE
-			)
-			RETURN SYS_REFCURSOR;
-	/*=======================*/
 	END getter;
 	/*========================================================================*/
 
