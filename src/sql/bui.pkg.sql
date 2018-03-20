@@ -28,11 +28,16 @@ SHOW ERRORS PACKAGE creater;
 
 CREATE OR REPLACE PACKAGE getter AS
 	/*========================================================================*/
+		by_bldg_key bldg.key%TYPE;
+		by_rm_bldgKey rm.bldgKey%TYPE;
+	/*=======================*/
 		FUNCTION everything
 			RETURN SYS_REFCURSOR;
 	/*=======================*/
 		FUNCTION types
 			RETURN SYS_REFCURSOR;
+	/*=======================*/
+		PROCEDURE buildingAndRooms;
 	/*=======================*/
 		FUNCTION buildingAndRooms
 			(

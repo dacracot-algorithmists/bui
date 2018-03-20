@@ -8,10 +8,11 @@ curl -X GET -u tester:testerpass "http://localhost:8080/tox/bui.getter.buildingA
 echo -------------------------------
 curl -X GET -u tester:testerpass "http://localhost:8080/tox/bui.getter.buildingAndRooms?in_name=B123" >> test/testResult.txt
 echo -------------------------------
-# curl -X POST -d "<root><date>19690720</date></root>" -u tester:testerpass "http://localhost:8080/tox/bui.creater.building" >> test/testResult.txt
-# echo -------------------------------
-# curl -X POST -d "<root><date>19690720</date></root>" -u tester:testerpass "http://localhost:8080/tox/bui.creater.room?in_key=1111" >> test/testResult.txt
-# echo -------------------------------
+# outer quotes must be single, inner quotes must be double
+curl -X POST -d '<bui><bldg name="B255"/></bui>' -u tester:testerpass "http://localhost:8080/tox/bui.creater.building" >> test/testResult.txt
+echo -------------------------------
+curl -X POST -d '<bui><rm name="1234A" typeKey="10001"/></bui>' -u tester:testerpass "http://localhost:8080/tox/bui.creater.room?in_key=10007" >> test/testResult.txt
+echo -------------------------------
 # curl -X GET -u tester:testerpass "http://localhost:8080/tox/bui.getter.room?in_key=2222" >> test/testResult.txt
 # echo -------------------------------
 # curl -X POST -d "<root><date>19690720</date></root>" -u tester:testerpass "http://localhost:8080/tox/bui.updater.building?in_key=1111" >> test/testResult.txt

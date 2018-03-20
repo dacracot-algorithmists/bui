@@ -17,13 +17,24 @@ CREATE OR REPLACE PACKAGE BODY creater
 		RETURN SYS_REFCURSOR
 		AS
 		/*-----------------------*/
+			v_key bldg.key%TYPE;
 		BEGIN
 		/*=======================*/
 			tox.tox.begin_spool;
 			v_timestamp:= tox.tox.timestamp;
 		/*-----------------------*/
 			tox.tox.into_spool('<bui call="creater.building" timestamp="'||v_timestamp||'" feedback="ok">');
-			tox.tox.into_spool('creater.building('||in_payload||')');
+			v_key:= key.NEXTVAL;
+			INSERT INTO
+				bldg (key, name, addr)
+			SELECT
+				v_key,
+				ExtractValue(Value(payload),'//bldg/@name'),
+				ExtractValue(Value(payload),'//bldg/@addr')
+			FROM
+				TABLE(XMLSequence(XMLType(in_payload))) payload;
+ 			bui.getter.by_bldg_key:= v_key;
+ 			bui.getter.buildingAndRooms;
 			tox.tox.into_spool('</bui>');
 		/*-----------------------*/
 			COMMIT;
@@ -44,6 +55,7 @@ CREATE OR REPLACE PACKAGE BODY creater
 			)
 		RETURN SYS_REFCURSOR
 		AS
+			v_key rm.key%TYPE;
 		/*-----------------------*/
 		BEGIN
 		/*=======================*/
@@ -51,7 +63,21 @@ CREATE OR REPLACE PACKAGE BODY creater
 			v_timestamp:= tox.tox.timestamp;
 		/*-----------------------*/
 			tox.tox.into_spool('<bui call="creater.room" timestamp="'||v_timestamp||'" feedback="ok">');
-			tox.tox.into_spool('creater.room('||in_key||','||in_payload||')');
+			v_key:= key.NEXTVAL;
+			INSERT INTO
+				rm (key, name, length, width, height, bldgKey, typeKey)
+			SELECT
+				v_key,
+				ExtractValue(Value(payload),'//rm/@name'),
+				ExtractValue(Value(payload),'//rm/@length'),
+				ExtractValue(Value(payload),'//rm/@width'),
+				ExtractValue(Value(payload),'//rm/@height'),
+				in_key,
+				ExtractValue(Value(payload),'//rm/@typeKey')
+			FROM
+				TABLE(XMLSequence(XMLType(in_payload))) payload;
+ 			bui.getter.by_bldg_key:= in_key;
+ 			bui.getter.buildingAndRooms;
 			tox.tox.into_spool('</bui>');
 		/*-----------------------*/
 			COMMIT;
@@ -80,7 +106,6 @@ CREATE OR REPLACE PACKAGE BODY getter
 		v_timestamp VARCHAR(16);
 		v_error VARCHAR2(1024);
 		/*=======================*/
-		by_bldg_key bldg.key%TYPE;
 		v_bldg_key bldg.key%TYPE;
 		v_bldg_name bldg.name%TYPE;
 		v_bldg_addr bldg.addr%TYPE;
@@ -119,7 +144,6 @@ CREATE OR REPLACE PACKAGE BODY getter
 		v_rm_width rm.width%TYPE;
 		v_rm_height rm.height%TYPE;
 		v_rm_bldgKey rm.bldgKey%TYPE;
-		by_rm_bldgKey rm.bldgKey%TYPE;
 		v_rm_typeKey rm.typeKey%TYPE;
 		/*=======================*/
 		CURSOR c_rm_by_bldgKey IS

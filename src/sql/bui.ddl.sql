@@ -7,13 +7,13 @@ CREATE SEQUENCE key START WITH 10000;
 /*------------------------------------------------------------------------*/
 CREATE TABLE bldg(
 	key NUMBER(11) DEFAULT key.NEXTVAL NOT NULL CONSTRAINT bldgPkey PRIMARY KEY USING INDEX,
-	name VARCHAR2(255) NOT NULL,
+	name VARCHAR2(255) NOT NULL CONSTRAINT bldgAltkey UNIQUE USING INDEX,
 	addr VARCHAR2(1023)
 );
 /*------------------------------------*/
 COMMENT ON TABLE bldg IS 'Buildings.';
 COMMENT ON COLUMN bldg.key IS 'Artificial primary key.';
-COMMENT ON COLUMN bldg.name IS 'Name of the building for display.';
+COMMENT ON COLUMN bldg.name IS 'Unique name of the building for display.';
 COMMENT ON COLUMN bldg.addr IS 'Address of the building.';
 /*------------------------------------------------------------------------*/
 CREATE TABLE type(
