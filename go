@@ -27,13 +27,6 @@ case "$1" in
 		if [ $? = 0 ] ; then
 			echo -----------------------------
 			ant clean
-# 			echo -----------------------------
-# 			"$TOMCAT_HOME/bin/shutdown.sh"
-# 			rm -fr "$WEBAPPS/bui*"
-# 			echo -----------------------------
-# 			cp -v bui.war "$WEBAPPS"
-# 			"$TOMCAT_HOME/bin/startup.sh"
-# 			sleep 2
 			echo -----------------------------
 			test/toxBuiTests.sh
 			echo -----------------------------

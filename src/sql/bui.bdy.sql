@@ -8,7 +8,6 @@ CREATE OR REPLACE PACKAGE BODY creater
 	/*========================================================================*/
 		v_timestamp VARCHAR(16);
 		v_error VARCHAR2(1024);
-		/*=======================*/
 	/*========================================================================*/
 		FUNCTION building
 			(
@@ -17,23 +16,23 @@ CREATE OR REPLACE PACKAGE BODY creater
 		RETURN SYS_REFCURSOR
 		AS
 		/*-----------------------*/
-			v_key bldg.key%TYPE;
+			v_bldg_key bldg.key%TYPE;
 		BEGIN
 		/*=======================*/
 			tox.tox.begin_spool;
 			v_timestamp:= tox.tox.timestamp;
 		/*-----------------------*/
 			tox.tox.into_spool('<bui call="creater.building" timestamp="'||v_timestamp||'" feedback="ok">');
-			v_key:= key.NEXTVAL;
+			v_bldg_key:= key.NEXTVAL;
 			INSERT INTO
 				bldg (key, name, addr)
 			SELECT
-				v_key,
+				v_bldg_key,
 				ExtractValue(Value(payload),'//bldg/@name'),
 				ExtractValue(Value(payload),'//bldg/@addr')
 			FROM
 				TABLE(XMLSequence(XMLType(in_payload))) payload;
- 			bui.getter.by_bldg_key:= v_key;
+ 			bui.getter.by_bldg_key:= v_bldg_key;
  			bui.getter.buildingAndRooms;
 			tox.tox.into_spool('</bui>');
 		/*-----------------------*/
@@ -50,12 +49,12 @@ CREATE OR REPLACE PACKAGE BODY creater
 	/*========================================================================*/
 		FUNCTION room
 			(
-			in_key IN rm.bldgKey%TYPE,
 			in_payload IN VARCHAR2
 			)
 		RETURN SYS_REFCURSOR
 		AS
-			v_key rm.key%TYPE;
+			v_rm_key rm.key%TYPE;
+			v_bldg_key rm.bldgKey%TYPE;
 		/*-----------------------*/
 		BEGIN
 		/*=======================*/
@@ -63,20 +62,26 @@ CREATE OR REPLACE PACKAGE BODY creater
 			v_timestamp:= tox.tox.timestamp;
 		/*-----------------------*/
 			tox.tox.into_spool('<bui call="creater.room" timestamp="'||v_timestamp||'" feedback="ok">');
-			v_key:= key.NEXTVAL;
+			v_rm_key:= key.NEXTVAL;
+			SELECT
+				ExtractValue(Value(payload),'//rm/@bldgKey')
+			INTO
+				v_bldg_key
+			FROM
+				TABLE(XMLSequence(XMLType(in_payload))) payload;
 			INSERT INTO
 				rm (key, name, length, width, height, bldgKey, typeKey)
 			SELECT
-				v_key,
+				v_rm_key,
 				ExtractValue(Value(payload),'//rm/@name'),
 				ExtractValue(Value(payload),'//rm/@length'),
 				ExtractValue(Value(payload),'//rm/@width'),
 				ExtractValue(Value(payload),'//rm/@height'),
-				in_key,
+				v_bldg_key,
 				ExtractValue(Value(payload),'//rm/@typeKey')
 			FROM
 				TABLE(XMLSequence(XMLType(in_payload))) payload;
- 			bui.getter.by_bldg_key:= in_key;
+ 			bui.getter.by_bldg_key:= v_bldg_key;
  			bui.getter.buildingAndRooms;
 			tox.tox.into_spool('</bui>');
 		/*-----------------------*/
@@ -361,15 +366,14 @@ CREATE OR REPLACE PACKAGE BODY updater
 	/*========================================================================*/
 		v_timestamp VARCHAR(16);
 		v_error VARCHAR2(1024);
-		/*=======================*/
 	/*========================================================================*/
 		FUNCTION building
 			(
-			in_key IN bldg.key%TYPE,
 			in_payload IN VARCHAR2
 			)
 		RETURN SYS_REFCURSOR
 		AS
+			v_bldg_key bldg.key%TYPE;
 		/*-----------------------*/
 		BEGIN
 		/*=======================*/
@@ -377,7 +381,25 @@ CREATE OR REPLACE PACKAGE BODY updater
 			v_timestamp:= tox.tox.timestamp;
 		/*-----------------------*/
 			tox.tox.into_spool('<bui call="updater.building" timestamp="'||v_timestamp||'" feedback="ok">');
-			tox.tox.into_spool('updater.building('||in_key||','||in_payload||')');
+			SELECT
+				ExtractValue(Value(payload),'//bldg/@key')
+			INTO
+				v_bldg_key
+			FROM
+				TABLE(XMLSequence(XMLType(in_payload))) payload;
+			UPDATE
+				bldg
+			SET
+				(name, addr) =
+					(SELECT
+						ExtractValue(Value(payload),'//bldg/@name'),
+						ExtractValue(Value(payload),'//bldg/@addr')
+					FROM
+						TABLE(XMLSequence(XMLType(in_payload))) payload)
+			WHERE
+				key = v_bldg_key;
+			bui.getter.by_bldg_key:= v_bldg_key;
+			bui.getter.buildingAndRooms;
 			tox.tox.into_spool('</bui>');
 		/*-----------------------*/
 			COMMIT;
@@ -393,11 +415,12 @@ CREATE OR REPLACE PACKAGE BODY updater
 	/*========================================================================*/
 		FUNCTION room
 			(
-			in_key IN rm.key%TYPE,
 			in_payload IN VARCHAR2
 			)
 		RETURN SYS_REFCURSOR
 		AS
+			v_bldg_key bldg.key%TYPE;
+			v_rm_key rm.key%TYPE;
 		/*-----------------------*/
 		BEGIN
 		/*=======================*/
@@ -405,7 +428,31 @@ CREATE OR REPLACE PACKAGE BODY updater
 			v_timestamp:= tox.tox.timestamp;
 		/*-----------------------*/
 			tox.tox.into_spool('<bui call="updater.room" timestamp="'||v_timestamp||'" feedback="ok">');
-			tox.tox.into_spool('updater.room('||in_key||','||in_payload||')');
+			SELECT
+				ExtractValue(Value(payload),'//rm/@key'),
+				ExtractValue(Value(payload),'//rm/@bldgKey')
+			INTO
+				v_rm_key,
+				v_bldg_key
+			FROM
+				TABLE(XMLSequence(XMLType(in_payload))) payload;
+			UPDATE
+				rm
+			SET
+				(name, length, width, height, bldgKey, typeKey) =
+					(SELECT
+						ExtractValue(Value(payload),'//rm/@name'),
+						ExtractValue(Value(payload),'//rm/@length'),
+						ExtractValue(Value(payload),'//rm/@width'),
+						ExtractValue(Value(payload),'//rm/@height'),
+						v_bldg_key,
+						ExtractValue(Value(payload),'//rm/@typeKey')
+					FROM
+						TABLE(XMLSequence(XMLType(in_payload))) payload)
+			WHERE
+				key = v_rm_key;
+ 			bui.getter.by_bldg_key:= v_bldg_key;
+ 			bui.getter.buildingAndRooms;
 			tox.tox.into_spool('</bui>');
 		/*-----------------------*/
 			COMMIT;
@@ -433,7 +480,6 @@ CREATE OR REPLACE PACKAGE BODY deleter
 	/*========================================================================*/
 		v_timestamp VARCHAR(16);
 		v_error VARCHAR2(1024);
-		/*=======================*/
 	/*========================================================================*/
 		FUNCTION building
 			(
@@ -447,9 +493,15 @@ CREATE OR REPLACE PACKAGE BODY deleter
 			tox.tox.begin_spool;
 			v_timestamp:= tox.tox.timestamp;
 		/*-----------------------*/
-			tox.tox.into_spool('<bui call="deleter.building" timestamp="'||v_timestamp||'" feedback="ok">');
-			tox.tox.into_spool('deleter.building('||in_key||')');
-			tox.tox.into_spool('</bui>');
+			tox.tox.into_spool('<bui call="deleter.building" timestamp="'||v_timestamp||'" feedback="ok"/>');
+			DELETE
+				rm
+			WHERE
+				bldgKey = in_key;
+			DELETE
+				bldg
+			WHERE
+				key = in_key;
 		/*-----------------------*/
 			COMMIT;
 			RETURN tox.tox.end_spool;
@@ -474,9 +526,11 @@ CREATE OR REPLACE PACKAGE BODY deleter
 			tox.tox.begin_spool;
 			v_timestamp:= tox.tox.timestamp;
 		/*-----------------------*/
-			tox.tox.into_spool('<bui call="deleter.room" timestamp="'||v_timestamp||'" feedback="ok">');
-			tox.tox.into_spool('deleter.room('||in_key||')');
-			tox.tox.into_spool('</bui>');
+			tox.tox.into_spool('<bui call="deleter.room" timestamp="'||v_timestamp||'" feedback="ok"/>');
+			DELETE
+				rm
+			WHERE
+				key = in_key;
 		/*-----------------------*/
 			COMMIT;
 			RETURN tox.tox.end_spool;

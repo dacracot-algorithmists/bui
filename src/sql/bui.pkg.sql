@@ -12,7 +12,6 @@ CREATE OR REPLACE PACKAGE creater AS
 	/*=======================*/
 		FUNCTION room
 			(
-			in_key IN rm.bldgKey%TYPE,
 			in_payload IN VARCHAR2
 			)
 			RETURN SYS_REFCURSOR;
@@ -64,14 +63,12 @@ CREATE OR REPLACE PACKAGE updater AS
 	/*========================================================================*/
 		FUNCTION building
 			(
-			in_key IN bldg.key%TYPE,
 			in_payload IN VARCHAR2
 			)
 			RETURN SYS_REFCURSOR;
 	/*=======================*/
 		FUNCTION room
 			(
-			in_key IN rm.key%TYPE,
 			in_payload IN VARCHAR2
 			)
 			RETURN SYS_REFCURSOR;
