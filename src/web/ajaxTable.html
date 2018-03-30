@@ -24,6 +24,7 @@ console.log("==================");
 			{ "data": "bui.bldgs.bldg.@addr" }
 			],
 		"ajax": {
+			// cache=true to avoid anti-cache bogus parameter that tox does not like
 			"cache": true,
 			"url": "http://localhost:8080/tox/bui.getter.everything",
 			"dataSrc": function(json){
