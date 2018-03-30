@@ -28,7 +28,17 @@ case "$1" in
 			echo -----------------------------
 			ant clean
 			echo -----------------------------
+			"$TOMCAT_HOME/bin/shutdown.sh"
+			rm -fr "$WEBAPPS/bui*"
+			echo -----------------------------
+			cp -v bui.war "$WEBAPPS"
+			"$TOMCAT_HOME/bin/startup.sh"
+			sleep 2
+			echo -----------------------------
 			test/toxBuiTests.sh
+			echo -----------------------------
+			open -a "Firefox" http://localhost:8080/bui/quickstart.html
+			open -a "Firefox" http://localhost:8080/bui/ajaxTable.html
 			echo -----------------------------
 			say "success"
 		else

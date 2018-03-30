@@ -80,26 +80,18 @@
 			<format property="when" pattern="yyyy-MM-dd HH:mm:ss"/>
 		</tstamp>
 		<filter token="WHEN" value="${when}"/>
-		<copy todir=".">
-			<fileset dir="tmp">
-				<include name="bui.jar"/>
-			</fileset>
+		<manifest file="tmp/MANIFEST.MF">
+			<attribute name="Built-By" value="${env.USER}"/>
+			<attribute name="Implementation-Version" value="${version} build ${build.number}"/>
+		</manifest>
+		<copy todir="tmp/bui/js" filtering="true">
+			<fileset dir="src/web/js"/>
 		</copy>
-		<copy todir="tmp/bui/WEB-INF/lib">
-			<fileset dir="lib">
-				<include name="json.jar"/>
-				<include name="ojdbc8.jar"/>
-				<include name="commons-logging-1.2.jar"/>
-				<include name="commons-codec-1.10.jar"/>
-			</fileset>
-			<fileset dir="tmp">
-				<include name="bui.jar"/>
-			</fileset>
+		<copy todir="tmp/bui/css" filtering="true">
+			<fileset dir="src/web/css"/>
 		</copy>
-		<copy todir="tmp/bui/WEB-INF/classes">
-			<fileset dir="src">
-				<include name="logging.properties"/>
-			</fileset>
+		<copy todir="tmp/bui">
+			<fileset dir="src/web"/>
 		</copy>
 		<war warfile="bui.war" webxml="src/web.xml" manifest="tmp/MANIFEST.MF">
 			<fileset dir="tmp/bui"/>
