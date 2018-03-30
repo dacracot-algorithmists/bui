@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>test DataTables</title>
+
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+
+	<link rel="stylesheet" type="text/css" href="css/jquery.dataTables.min.css"/>
+	<script type="text/javascript" src="js/jquery.dataTables.min.js"></script>
+
+</head>
+<body>
+<table id="myTable" class="display">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Age</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Craig</td>
+            <td>56</td>
+        </tr>
+        <tr>
+            <td>Ligia</td>
+            <td>54</td>
+        </tr>
+        <tr>
+            <td>Lurabeth</td>
+            <td>81</td>
+        </tr>
+        <tr>
+            <td>Zach</td>
+            <td>24</td>
+        </tr>
+        <tr>
+            <td>Devin</td>
+            <td>22</td>
+        </tr>
+        <tr>
+            <td>one</td>
+            <td>1</td>
+        </tr>
+        <tr>
+            <td>two</td>
+            <td>2</td>
+        </tr>
+        <tr>
+            <td>three</td>
+            <td>3</td>
+        </tr>
+        <tr>
+            <td>four</td>
+            <td>4</td>
+        </tr>
+        <tr>
+            <td>five</td>
+            <td>5</td>
+        </tr>
+        <tr>
+            <td>six</td>
+            <td>6</td>
+        </tr>
+        <tr>
+            <td>seven</td>
+            <td>7</td>
+        </tr>
+        <tr>
+            <td>eight</td>
+            <td>8</td>
+        </tr>
+        <tr>
+            <td>nine</td>
+            <td>9</td>
+        </tr>
+        <tr>
+            <td>ten</td>
+            <td>10</td>
+        </tr>
+    </tbody>
+</table>
+<script>
+$(document).ready( function () {
+    $('#myTable').DataTable( {
+    pageLength: 8,
+    select: true
+} );
+} );
+</script>
+</body>
+</html>
