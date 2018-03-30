@@ -11,7 +11,7 @@ echo -------------------------------
 # outer quotes must be single, inner quotes must be double
 curl -X POST -d '<bui><bldg name="B256"/></bui>' -u tester:testerpass "http://localhost:8080/tox/bui.creater.building" >> test/testResult.txt
 echo -------------------------------
-curl -X POST -d '<bui><rm name="1234A" bldgKey="10021" typeKey="10001"/></bui>' -u tester:testerpass "http://localhost:8080/tox/bui.creater.room" >> test/testResult.txt
+curl -X POST -d '<bui><rm name="1234A" bldgKey="10064" typeKey="10001"/></bui>' -u tester:testerpass "http://localhost:8080/tox/bui.creater.room" >> test/testResult.txt
 echo -------------------------------
 curl -X POST -d '<bui><bldg key="10040" name="Building 255"/></bui>' -u tester:testerpass "http://localhost:8080/tox/bui.updater.building" >> test/testResult.txt
 echo -------------------------------
