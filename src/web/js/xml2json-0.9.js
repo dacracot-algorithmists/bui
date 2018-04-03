@@ -127,7 +127,7 @@ function xml2json(xml, tab) {
                    .replace(/[\r]/g, '\\r');
       },
       removeWhite: function(e) {
-         e.normalize();
+//          e.normalize();
          for (var n = e.firstChild; n; ) {
             if (n.nodeType == 3) {  // text node
                if (!n.nodeValue.match(/[^ \f\n\r\t\v]/)) { // pure whitespace text node

@@ -8,14 +8,21 @@
 
 	<link rel="stylesheet" type="text/css" href="css/jquery.dataTables.min.css"/>
 	<script type="text/javascript" src="js/jquery.dataTables.min.js"></script>
+	
+	<script type="text/javascript" src="js/xml2json.js"></script>
+	<script type="text/javascript" src="js/json2xml.js"></script>
 
 </head>
 <body>
-<table id="myTable" class="display"></table>
+<table id="returnXML" class="display"></table>
+<hr/>
+<table id="returnJSON" class="display"></table>
+<hr/>
+<table id="AJAXpassVAR" class="display"></table>
 <script>
 $(document).ready( function () {
 console.log("==================");
-    $('#myTable').DataTable( {
+    $('#returnXML').DataTable( {
 		"pageLength": 8,
 		"select": true,
 		"columns": [
@@ -29,17 +36,64 @@ console.log("==================");
 			"url": "http://localhost:8080/tox/bui.getter.everything",
 			"dataSrc": function(json){
 				// incoming is xml
-console.log("------------------");
-console.log(json);
-console.log("------------------");
+console.log("returnXML ------------------");
+console.log("returnXML - "+json);
+console.log("returnXML ------------------");
 var js = xml2json(json);
-console.log(js);
-console.log("------------------");
+console.log("returnXML - "+js);
+console.log("returnXML ------------------");
+				return xml2json(js);
+				}
+			}
+		} );
+console.log("==================");
+    $('#returnJSON').DataTable( {
+		"pageLength": 8,
+		"select": true,
+		"columns": [
+			{ "data": "bui.bldgs.bldg.key" },
+			{ "data": "bui.bldgs.bldg.name" },
+			{ "data": "bui.bldgs.bldg.addr" }
+			],
+		"ajax": {
+			// cache=true to avoid anti-cache bogus parameter that tox does not like
+			"cache": true,
+			"url": "http://localhost:8080/tox/bui.getter.everything?outputType=JSON",
+			"dataSrc": function(json){
+				// incoming is xml
+console.log("returnJSON ------------------");
+console.log("returnJSON - "+JSON.stringify(json));
+console.log("returnJSON ------------------");
 				return xml2json(json);
 				}
 			}
 		} );
 console.log("==================");
+//     $('#returnXML').DataTable( {
+// 		"pageLength": 8,
+// 		"select": true,
+// 		"columns": [
+// 			{ "data": "bui.bldgs.bldg.@key" },
+// 			{ "data": "bui.bldgs.bldg.@name" },
+// 			{ "data": "bui.bldgs.bldg.@addr" }
+// 			],
+// 		"ajax": {
+// 			// cache=true to avoid anti-cache bogus parameter that tox does not like
+// 			"cache": true,
+// 			"url": "http://localhost:8080/tox/bui.getter.everything",
+// 			"dataSrc": function(json){
+// 				// incoming is xml
+// console.log("------------------");
+// console.log(json);
+// console.log("------------------");
+// var js = xml2json(json);
+// console.log(js);
+// console.log("------------------");
+// 				return xml2json(json);
+// 				}
+// 			}
+// 		} );
+// console.log("==================");
 	} );
 </script>
 </body>
